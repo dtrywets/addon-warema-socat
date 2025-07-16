@@ -8,7 +8,7 @@
   "url": "https://github.com/dtrywets/addon-warema-socat",
   "boot": "auto",
   "hassio_api": true,
-  "image": "giannello/addon-warema-socat",
+  "image": "dtrywets/addon-warema-socat",
   "options": {
     "wms_serial_port": null
   },
