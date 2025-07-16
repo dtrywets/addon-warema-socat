@@ -9,7 +9,7 @@
   "boot": "auto",
   "hassio_api": true,
   "options": {
-    "wms_serial_port": null
+    "wms_serial_port": "/dev/ttyUSBwarema"
   },
   "devices": [
     "/dev/ttyUSB20:/dev/ttyUSB20"
@@ -18,7 +18,7 @@
     "wms_key": "str?",
     "wms_pan_id": "str?",
     "wms_channel": "int?",
-    "wms_serial_port": "device(subsystem=tty)",
+    "wms_serial_port": "str?"
     "ignored_devices": "str?",
     "force_devices": "str?"
   },
