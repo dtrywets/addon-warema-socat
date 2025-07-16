@@ -1,17 +1,20 @@
 {
-  "name": "Warema Bridge",
+  "name": "Warema Socat",
   "version": "dev",
-  "slug": "warema-bridge",
-  "description": "Control your Warema WMS system",
+  "slug": "warema-socat",
+  "description": "Control your Warema WMS system through socat and ser2net",
   "arch": ["aarch64", "amd64", "armv7", "i386"],
   "startup": "services",
-  "url": "https://github.com/giannello/addon-warema-bridge",
+  "url": "https://github.com/dtrywets/addon-warema-socat",
   "boot": "auto",
   "hassio_api": true,
-  "image": "giannello/addon-warema-bridge",
+  "image": "giannello/addon-warema-socat",
   "options": {
     "wms_serial_port": null
   },
+  "devices": [
+    "/dev/ttyUSB20:/dev/ttyUSB20"
+  ],
   "schema": {
     "wms_key": "str?",
     "wms_pan_id": "str?",

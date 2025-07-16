@@ -10,7 +10,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN \
     apk add --no-cache --virtual .build-deps python3 make g++ linux-headers
 RUN \
-    apk add --no-cache npm
+    apk add --no-cache npm socat
 
 # Copy root filesystem
 COPY rootfs/srv/package-lock.json /srv

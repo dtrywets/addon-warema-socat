@@ -1,0 +1,65 @@
+#!/usr/bin/with-contenv bashio
+# ==============================================================================
+# Home Assistant Community Add-on: Warema Bridge mit socat
+# ==============================================================================
+
+declare -a options
+
+DEVICE="/dev/ttyUSBwarema"
+HOST="192.168.20.20"
+PORT="2004"
+
+bashio::log.info "Starte socat für TCP $HOST:$PORT zu $DEVICE"
+
+# Falls das Device schon existiert, löschen
+if [ -e "$DEVICE" ]; then
+    bashio::log.warning "$DEVICE existiert bereits. Entferne..."
+    rm -f "$DEVICE"
+fi
+
+# Starte socat im Hintergrund
+socat -d -d PTY,link="$DEVICE",raw TCP:"$HOST":"$PORT" &
+SOCAT_PID=$!
+bashio::log.info "socat gestartet mit PID $SOCAT_PID"
+
+# Gebe socat etwas Zeit, das Device bereitzustellen
+sleep 2
+
+# Load configuration into environment variables
+for var in WMS_KEY WMS_PAN_ID WMS_CHANNEL WMS_SERIAL_PORT IGNORED_DEVICES FORCE_DEVICES; do
+  if bashio::config.has_value ${var,,}; then
+    value=$(bashio::config ${var,,})
+    bashio::log.info "Setze ${var} auf ${value}"
+    export "${var}=${value}"
+  fi
+done
+
+# Setze das neue Device als WMS_SERIAL_PORT, falls nicht manuell gesetzt
+if ! bashio::config.has_value 'wms_serial_port'; then
+    export WMS_SERIAL_PORT="$DEVICE"
+    bashio::log.info "WMS_SERIAL_PORT nicht gesetzt – verwende $DEVICE"
+fi
+
+# MQTT konfigurieren
+if ! bashio::services.available "mqtt" && ! bashio::config.exists 'mqtt.server'; then
+    bashio::exit.nok "Kein interner MQTT-Dienst und keine Server-Konfiguration vorhanden"
+else
+    bashio::log.info "MQTT verfügbar, konfiguriere Verbindung ..."
+    if ! bashio::config.exists 'mqtt.server'; then
+        MQTT_PREFIX="mqtt://"
+        if [ "$(bashio::services mqtt "ssl")" = true ]; then
+            MQTT_PREFIX="mqtts://"
+        fi
+        export MQTT_SERVER="${MQTT_PREFIX}$(bashio::services mqtt "host"):$(bashio::services mqtt "port")"
+        bashio::log.info "MQTT-Server: ${MQTT_SERVER}"
+    fi
+    if ! bashio::config.exists 'mqtt.user'; then
+        export MQTT_USER="$(bashio::services mqtt "username")"
+        export MQTT_PASSWORD="$(bashio::services mqtt "password")"
+        bashio::log.info "MQTT-Nutzer: ${MQTT_USER}"
+    fi
+fi
+
+# Starte Warema Bridge
+bashio::log.info "Starte Warema Bridge mit Gerät: $WMS_SERIAL_PORT"
+exec node /srv/bridge.js
